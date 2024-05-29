@@ -1,0 +1,53 @@
+# SQL query that looks for duplicates in the 'film' table
+
+          SELECT film_id, title, description, release_year, language_id, rental_duration, rental_rate, length, 
+              replacement_cost, rating, last_update, special_features, fulltext,
+        Count (*)
+      From film
+        GROUP BY film_id, title, description, release_year, language_id, rental_duration, rental_rate, length, 
+              replacement_cost, rating, last_update, special_features, fulltext
+        HAVING COUNT (*)<1
+
+
+
+# SQL query that returns the top 10 countries in terms of customers
+
+      SELECT D. country,
+	COUNT(A. customer_id) AS number_of_customers
+FROM customer A
+	INNER JOIN address B ON A.address_id=B.address_id
+	INNER JOIN city C ON B.city_id=C.city_id
+	INNER JOIN country D ON C.country_id=D.country_id
+GROUP BY D.country
+ORDER BY number_of_customers DESC
+LIMIT 10
+
+
+# SQL query that finds the top 5 customers in the top 5 countries names and where they live 
+
+      (SELECT
+	A.customer_id,
+	A.first_name,
+	A.last_name,
+	D.country,
+	C.city,
+	SUM(B.amount) AS total_amount_paid
+FROM customer A
+	JOIN
+	payment B ON A.customer_id = B.customer_id
+	JOIN
+	address E ON A.address_id = E.address_id
+	JOIN
+	city C ON E.city_id = C.city_id
+	JOIN
+	country D ON C.country_id = D.country_id
+	WHERE C.city IN 
+		(SELECT city
+		FROM customer A
+		JOIN address E ON A.address_id = E.address_id JOIN city C ON E.city_id = C.city_id
+ 		JOIN country D ON C.country_id = D.country_id GROUP BY C.city
+		ORDER BY COUNT(A.customer_id) DESC LIMIT 10)
+GROUP BY
+A.customer_id, A.first_name, A.last_name, D.country, C.city
+ORDER BY total_amount_paid DESC
+LIMIT 5) 
